@@ -1,0 +1,12 @@
+INFO:tools.base_tool:Herramienta FileTool registrada.
+INFO:tools.base_tool:Herramienta SystemTool registrada.
+INFO:tools.base_tool:Herramienta CodeTool registrada.
+INFO:     Started server process [18360]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+Serving frontend from: /home/ubuntu/work_v4.2/codi-core-complete/codi-ui/dist
+INFO:     127.0.0.1:43776 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52578 - "POST /process?objective=Crea+un+archivo+test_tool.txt+con+el+contenido+%27OK%27 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52594 - "POST /process-with-files HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52604 - "POST /process-with-files HTTP/1.1" 200 OK
