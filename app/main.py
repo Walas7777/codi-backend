@@ -106,6 +106,6 @@ def get_report(plan_id: str):
 def health():
     return {
         "status": "healthy", 
-        "mode": "FASE 7 (DeepAgent + LangGraph)",
+        "mode": "FASE 7.1 (DeepAgent + LangGraph + CORS Fix)",
         "deepagent_enabled": os.getenv("DEEPAGENT_ENABLED", "true")
     }
