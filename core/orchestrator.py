@@ -81,10 +81,19 @@ class Orchestrator:
         
         if use_langgraph:
             logger.info(">>> Inicializando DeepAgent con LangGraphEngine")
-            # En producción, llm sería una instancia real de ChatOpenAI o similar
-            # Aquí usamos un mock para el LLM si no se provee uno real
-            from core.mock_llm import MockLLM 
-            llm = MockLLM() # Placeholder, debería ser ChatOpenAI(model="gpt-4")
+            # Usar ChatOpenAI real con la API Key de Railway
+            try:
+                from langchain_openai import ChatOpenAI
+                api_key = os.getenv("OPENAI_API_KEY")
+                if not api_key:
+                    raise ValueError("OPENAI_API_KEY no configurada en variables de entorno")
+                llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, openai_api_key=api_key)
+                logger.info("✅ ChatOpenAI inicializado correctamente con gpt-4o-mini")
+            except Exception as e:
+                logger.error(f"❌ Error al inicializar ChatOpenAI: {e}")
+                logger.warning("🔄 Fallback a MockLLM")
+                from core.mock_llm import MockLLM 
+                llm = MockLLM()
             
             # Crear proxies de herramientas para LangGraph
             # LangGraphEngine espera un objeto que tenga método execute(intent)
