@@ -110,6 +110,14 @@ class Orchestrator:
                 
                 def execute(self, intent_data):
                     # intent_data es dict con 'intent' y 'params'
+                    if isinstance(intent_data, str):
+                        try:
+                            intent_data = json.loads(intent_data)
+                        except json.JSONDecodeError:
+                            # Si no es JSON válido, asumimos que es el nombre del intent o un error
+                            logger.warning(f"ToolAdapter recibió string no JSON: {intent_data}")
+                            return f"Error: Input must be a JSON object, got string: {intent_data}"
+
                     intent_name = intent_data.get("intent")
                     params = intent_data.get("params", {})
                     # Construir acción y ejecutar vía executor (que usa tool_manager)
