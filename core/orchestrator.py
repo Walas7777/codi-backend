@@ -77,7 +77,9 @@ class Orchestrator:
         self.current_plan_id: str = None
         
         # Inicializar DeepAgent con Feature Flag
-        use_langgraph = os.getenv("USE_LANGGRAPH", "false").lower() == "true"
+        # FORZAR ACTIVACIÓN si existe OPENAI_API_KEY (Fix crítico para Railway)
+        openai_key_exists = bool(os.getenv("OPENAI_API_KEY"))
+        use_langgraph = openai_key_exists or (os.getenv("USE_LANGGRAPH", "false").lower() == "true")
         
         if use_langgraph:
             logger.info(">>> Inicializando DeepAgent con LangGraphEngine")
