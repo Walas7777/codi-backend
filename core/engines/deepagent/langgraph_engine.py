@@ -31,16 +31,51 @@ class LangGraphEngine:
         goal = state["goal"]
         context = state.get("context", {})
         
-        # Prompt simple para el LLM (MVP)
-        # En producción, esto sería un prompt más elaborado o un chain
-        # Aquí simulamos que el LLM devuelve una estructura JSON válida
-        # Para el MVP y pruebas, si self.llm es un mock, devolverá lo esperado.
-        # Si es real, necesitaríamos parsear la salida.
-        
-        # Asumimos que self.llm.plan es un método que abstrae la llamada al modelo
-        # y devuelve una lista de diccionarios con 'intent' y 'params'.
-        intents = self.llm.plan(goal, context)
-        
+        # Verificar si es MockLLM (tiene método plan) o ChatOpenAI (necesita invoke)
+        if hasattr(self.llm, "plan"):
+            intents = self.llm.plan(goal, context)
+        else:
+            # Lógica para ChatOpenAI real
+            from langchain_core.messages import SystemMessage, HumanMessage
+            import json
+            
+            system_prompt = """Eres un asistente de IA experto. Tu objetivo es generar un plan de ejecución JSON para cumplir el objetivo del usuario.
+            Debes responder ÚNICAMENTE con un array JSON de objetos, donde cada objeto representa una acción (intent).
+            
+            Formatos de intents soportados:
+            1. {"intent": "read_file", "params": {"file_path": "/path/to/file"}}
+            2. {"intent": "write_file", "params": {"file_path": "/path/to/file", "content": "texto"}}
+            3. {"intent": "analyze", "params": {"content": "texto a analizar"}}
+            
+            Si el objetivo es una pregunta simple, usa un intent especial o responde directamente en el análisis.
+            Para este MVP, si es una pregunta de conocimiento general, genera un intent de tipo 'answer_question'.
+            Ejemplo: [{"intent": "answer_question", "params": {"question": "¿Cuál es la capital de Francia?", "answer": "París"}}]
+            """
+            
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=f"Objetivo: {goal}\nContexto: {context}")
+            ]
+            
+            response = self.llm.invoke(messages)
+            content = response.content.strip()
+            
+            # Limpiar bloques de código markdown si existen
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+            try:
+                intents = json.loads(content)
+                if not isinstance(intents, list):
+                    # Si devuelve un solo objeto, envolver en lista
+                    intents = [intents]
+            except json.JSONDecodeError:
+                # Fallback simple si no devuelve JSON válido
+                intents = [{"intent": "answer_question", "params": {"question": goal, "answer": content}}]
+
         return {"intents": intents}
 
     def _execute(self, state: Dict[str, Any]) -> Dict[str, Any]:
