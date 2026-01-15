@@ -1,13 +1,17 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import os
 import logging
+from core.orchestrator import Orchestrator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# Inicializar Orchestrator
+orchestrator = Orchestrator()
 
 # CORS CONFIGURATION
 app.add_middleware(
@@ -37,8 +41,8 @@ async def add_cors_headers(request: Request, call_next):
 async def root():
     return {
         "service": "CODI Backend Core",
-        "version": "7.1",
-        "mode": "FASE 7.1 (Simplified + CORS Fix)",
+        "version": "8.0",
+        "mode": "FASE 8.0 (Full Agent + Chat Endpoint)",
         "status": "operational"
     }
 
@@ -46,9 +50,44 @@ async def root():
 def health():
     return {
         "status": "healthy", 
-        "mode": "FASE 7.1 (Simplified + CORS Fix)",
+        "mode": "FASE 8.0 (Full Agent + Chat Endpoint)",
+        "deepagent_enabled": "true",
         "openai_configured": bool(os.getenv("OPENAI_API_KEY"))
     }
+
+@app.post("/process")
+async def process_objective(objective: str):
+    try:
+        logger.info(f"Processing objective: {objective}")
+        report = orchestrator.process_objective(objective)
+        
+        # Extraer la respuesta final del reporte
+        final_answer = "No answer generated"
+        
+        # Intentar sacar la respuesta de los resultados de ejecución
+        if report.execution_results:
+            last_result = report.execution_results[-1]
+            if isinstance(last_result, dict):
+                # Si es DeepAgent, el output suele estar anidado
+                output = last_result.get("output", {})
+                if isinstance(output, dict):
+                    final_answer = output.get("result", str(output))
+                else:
+                    final_answer = str(output)
+            else:
+                final_answer = str(last_result)
+                
+        # Estructura solicitada por el usuario
+        return {
+            "status": "completed",
+            "plan_id": report.plan_id,
+            "final_answer": final_answer,
+            "engine": report.engine,
+            "full_report": report.to_dict() # Incluimos el reporte completo por si acaso
+        }
+    except Exception as e:
+        logger.error(f"Error processing objective: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
