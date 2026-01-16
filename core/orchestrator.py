@@ -191,10 +191,12 @@ class Orchestrator:
         
         # FIX CRÍTICO: Forzar DeepAgent si existe API Key, ignorando heurística
         openai_key_exists = bool(os.getenv("OPENAI_API_KEY"))
-        use_deepagent = openai_key_exists and is_allowed
         
-        # Si no hay API Key, usamos la lógica antigua (que probablemente dará False)
-        if not openai_key_exists:
+        if openai_key_exists:
+            # Si hay API Key, forzar DeepAgent
+            use_deepagent = is_allowed
+        else:
+            # Si no hay API Key, usar heurística antigua
             should_use = should_use_deepagent(task_context)
             use_deepagent = should_use and is_allowed
         
