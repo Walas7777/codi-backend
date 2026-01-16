@@ -130,14 +130,11 @@ class Orchestrator:
 
                     intent_name = intent_data.get("intent")
                     params = intent_data.get("params", {})
-                    # Construir acción y ejecutar vía executor (que usa tool_manager)
-                    # El executor espera una lista de intents en su método execute, 
-                    # pero aquí queremos ejecutar uno solo y devolver resultado directo.
-                    # Accedemos al tool_manager directamente para ejecución síncrona simple
-                    # O mejor, usamos el executor para mantener validaciones.
                     
-                    # Simulamos estructura de intent para executor
-                    intent_full = {"name": intent_name, **params}
+                    # Construir acción y ejecutar vía executor (que usa tool_manager)
+                    # El executor espera una lista de intents con estructura {"name": ..., "params": ...}
+                    intent_full = {"name": intent_name, "params": params}
+                    
                     results = self.executor.execute([intent_full])
                     if results and results[0]["status"] == "success":
                         return results[0]["result"]
