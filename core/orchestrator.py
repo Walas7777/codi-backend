@@ -183,10 +183,17 @@ class Orchestrator:
         
         # Decisión de Motor
         is_allowed = deepagent_allowed(user_context)
-        should_use = should_use_deepagent(task_context)
-        use_deepagent = should_use and is_allowed
         
-        logger.info(f"Decision Gate: Multi-step={requires_multi_step}, Should={should_use}, Allowed={is_allowed} -> Use DeepAgent={use_deepagent}")
+        # FIX CRÍTICO: Forzar DeepAgent si existe API Key, ignorando heurística
+        openai_key_exists = bool(os.getenv("OPENAI_API_KEY"))
+        use_deepagent = openai_key_exists and is_allowed
+        
+        # Si no hay API Key, usamos la lógica antigua (que probablemente dará False)
+        if not openai_key_exists:
+            should_use = should_use_deepagent(task_context)
+            use_deepagent = should_use and is_allowed
+        
+        logger.info(f"Decision Gate: Force DeepAgent={openai_key_exists}, Allowed={is_allowed} -> Use DeepAgent={use_deepagent}")
         engine_used = "deepagent" if use_deepagent else "standard"
         
         execution_results = []
