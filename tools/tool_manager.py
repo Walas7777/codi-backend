@@ -19,6 +19,11 @@ class ToolManager:
                 return tool.read(params["path"])
             elif "zip_path" in params:
                 return tool.extract_zip(params["zip_path"], "extracted_zip")
+        
+        # Adaptador para QuestionTool
+        if name == "QuestionTool":
+            if "question" in params:
+                return tool.run(question=params["question"])
             
         # Fallback genérico si la tool tiene método run
         if hasattr(tool, 'run'):

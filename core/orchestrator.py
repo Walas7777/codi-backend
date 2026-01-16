@@ -16,6 +16,7 @@ from .planner import Planner, Plan
 from .executor import Executor, ExecutionResult
 from tools.tool_manager import ToolManager
 from tools.file_tool import FileTool
+from tools.question_tool import QuestionTool
 from .engines.deepagent.decision_gate import should_use_deepagent
 from .engines.deepagent.deepagent_engine import DeepAgentEngine
 from .engines.deepagent.security import deepagent_allowed
@@ -71,6 +72,13 @@ class Orchestrator:
         # Inicializar ToolManager y registrar herramientas básicas
         self.tool_manager = ToolManager()
         self.tool_manager.register("FileTool", FileTool())
+        
+        # Registrar QuestionTool para responder preguntas
+        try:
+            self.tool_manager.register("QuestionTool", QuestionTool())
+            logger.info("✅ QuestionTool registrada correctamente")
+        except Exception as e:
+            logger.warning(f"⚠️ No se pudo registrar QuestionTool: {e}")
         
         self.executor = Executor(self.tool_manager)
         self.reports: Dict[str, OrchestrationReport] = {}

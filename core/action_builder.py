@@ -19,6 +19,11 @@ INTENT_MAP = {
         tool="FileTool",
         params={"zip_path": p["zip_path"]}
     ),
+    "answer_question": lambda p: Action(
+        type="ANSWER_QUESTION",
+        tool="QuestionTool",
+        params={"question": p.get("question") or p.get("query") or p.get("text") or p.get("objective")}
+    ),
 }
 
 class ActionBuilder:
