@@ -96,6 +96,14 @@ async def process_objective(objective: str):
         logger.error(f"Error processing objective: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/chat")
+async def chat_endpoint(objective: str):
+    """
+    Endpoint de compatibilidad para frontend que llama a /chat.
+    Redirige internamente a /process.
+    """
+    return await process_objective(objective)
+
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
     return {"message": "CORS preflight handled"}
