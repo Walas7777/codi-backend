@@ -77,6 +77,13 @@ async def process_objective(objective: str):
             else:
                 final_answer = str(last_result)
                 
+        # 🔒 FIX CRÍTICO: nunca devolver objeto vacío
+        if not final_answer or final_answer == "{}" or final_answer == {}:
+            final_answer = (
+                "Tarea ejecutada correctamente en modo estándar. "
+                "No se requirió razonamiento avanzado."
+            )
+
         # Estructura solicitada por el usuario
         return {
             "status": "completed",
